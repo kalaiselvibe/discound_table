@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 8px;
+      }
+
+      th {
+        background-color: #ddd;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      button {
+        padding: 10px;
+        background-color: blue;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Discount Table</h2>
+    <table id="discount-table">
+      <thead>
+        <tr>
+          <th>Vendor/Trade</th>
+          <th>Discount %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Discount table data will be populated using JavaScript -->
+      </tbody>
+    </table>
+
+    <h2>Product Table</h2>
+    <button id="download-data-btn">Download Data</button>
+    <table id="product-table">
+      <thead>
+        <tr>
+          <th>Product ID</th>
+          <th>Product Name</th>
+          <th>Vendor/Trade</th>
+          <th>Price</th>
+          <th>Add to Cart</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Product table data will be populated using JavaScript -->
+      </tbody>
+    </table>
+
+    <h2>Shopping Cart</h2>
+    <table id="shopping-cart">
+      <thead>
+        <tr>
+          <th>Product ID</th>
+          <th>Product Name</th>
+          <th>Vendor/Trade</th>
+          <th>Price</th>
+          <th>Discount %</th>
+          <th>Discount Amount</th>
+          <th>Total Price</th>
+          <th>Remove From Cart</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Shopping cart data will be populated and updated using JavaScript -->
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="6"></td>
+          <td>Total:</td>
+          <td id="total-price">0.00</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <script>
+      // Define the discount table data
+      var discountTableData = [
+        { vendor: "Vendor A", discount: 00 },
+        { vendor: "Vendor B", discount: 03 },
+        { vendor: "Vendor C", discount: 05 },
+        { vendor: "Vendor D", discount: 06 },
+        { vendor: "Vendor E", discount: 08 },
+        { vendor: "Vendor F", discount: 11 },
+        { vendor: "Vendor G", discount: 12 },
+        { vendor: "Vendor H", discount: 16 },
+        { vendor: "Vendor I", discount: 20 },
+        { vendor: "Vendor J", discount: 30 },
+      ];
+
+      // Populate the discount table using JavaScript
+      var discountTableBody = document.querySelector("#discount-table tbody");
+      discountTableData.forEach(function (data) {
+        var row = document.createElement("tr");
+        row.innerHTML =
+          "<td>" + data.vendor + "</td><td>" + data.discount + "%</td>";
+        discountTableBody.appendChild(row);
+      });
+
+      // Define a function to populate the product table using data downloaded from a server
+      function populateProductTable(products) {
+        var productTableBody = document.querySelector("#product-table tbody");
+        productTableBody.innerHTML = "";
+        products.forEach(function (product) {
+          var row = document.createElement("tr");
+          var discount = getDiscountByVendor(product.vendor); // Get the discount for the product's vendor from the discount table
+          var discountAmount = (product.price * discount) / 100;
+          var totalPrice = product.price - discountAmount;
+          row.innerHTML =
+            "<td>" +
+            product.id +
+            "</td><td>" +
+            product.name +
+            "</td><td>" +
+            product.vendor +
+            "</td><td>" +
+            product.price.toFixed(2) +
+            '</td><td><button class="add-to-cart-btn" data-product-id="' +
+            product.id +
+            '" data-product-name="' +
+            product.name +
+            '" data-product-price="' +
+            product.price.toFixed(2) +
+            '" data-product-vendor="' +
+            product.vendor +
+            '" data-product-discount="' +
+            discount +
+            '" data-product-discount-amount="' +
+            discountAmount.toFixed(2) +
+            '" data-product-total-price="' +
+            totalPrice.toFixed(2) +
+            '">Add to Cart</button></td>';
+          productTableBody.appendChild(row);
+        });
+      }
+
+      // Define a function to get the discount for a vendor from the discount table
+      function getDiscountByVendor(vendor) {
+        for (var i = 0; i < discountTableData.length; i++) {
+          if (discountTableData[i].vendor === vendor) {
+            return discountTableData[i].discount;
+          }
+        }
+        return 0;
+      }
+
+      // Define a function to add a product to the shopping cart
+      function addToCart(event) {
+        var product = event.target.dataset;
+        var cartTableBody = document.querySelector("#shopping-cart tbody");
+        var row = document.createElement("tr");
+        row.innerHTML =
+          "<td>" +
+          product.productId +
+          "</td><td>" +
+          product.productName +
+          "</td><td>" +
+          product.productVendor +
+          "</td><td>" +
+          product.productPrice +
+          "</td><td>" +
+          product.productDiscount +
+          "%</td><td>" +
+          product.productDiscountAmount +
+          "</td><td>" +
+          product.productTotalPrice +
+          '</td><td><button class="remove-from-cart-btn" data-product-id="' +
+          product.productId +
+          '">Remove</button></td>';
+        cartTableBody.appendChild(row);
+        updateTotalPrice();
+         // Add event listeners for the "Remove" button in the shopping cart table
+         var removeFromCartButtons = document.querySelectorAll(
+          ".remove-from-cart-btn"
+        );
+        removeFromCartButtons.forEach(function (button) {
+          button.addEventListener("click", removeFromCart);
+        });
+      }
+
+      // Define a function to remove a product from the shopping cart
+      function removeFromCart(event) {
+        const productId = event.target.dataset.productId;
+        const row = event.target.closest("tr");
+        row.remove();
+        updateTotalPrice();
+      }
+
+      // Define a function to update the total price in the shopping cart
+      function updateTotalPrice() {
+        var cartRows = document.querySelectorAll("#shopping-cart tbody tr");
+        var totalPrice = 0;
+        cartRows.forEach(function (row) {
+          totalPrice += parseFloat(row.children[6].textContent);
+        });
+        document.querySelector("#total-price").textContent =
+          totalPrice.toFixed(2);
+      }
+
+      // Add event listeners for the "Download Data" button and the "Add to Cart" and "Remove" buttons in the product and shopping cart tables
+      document
+        .querySelector("#download-data-btn")
+        .addEventListener("click", function () {
+          // Simulate downloading product data from a server
+          var products = [
+            { id: 1, name: "test product1", vendor: "Vendor C", price: 12.5 },
+            { id: 2, name: "test product2", vendor: "Vendor A", price: 42.5 },
+            { id: 3, name: "test product3", vendor: "Vendor B", price: 200.0 },
+            { id: 4, name: "test product4", vendor: "Vendor I", price: 52.5 },
+            { id: 5, name: "test product5", vendor: "Vendor D", price: 712.5 },
+            { id: 6, name: "test product6", vendor: "Vendor A", price: 17.0 },
+            { id: 7, name: "test product7", vendor: "Vendor A", price: 55.0 },
+            { id: 8, name: "test product8", vendor: "Vendor J", price: 37.0 },
+            { id: 9, name: "test product9", vendor: "Vendor H", price: 82.0 },
+            { id: 10, name: "test product10", vendor: "Vendor E", price: 52.0 },
+            {
+              id: 11,
+              name: "test product11",
+              vendor: "Vendor G",
+              price: 102.0,
+            },
+            {
+              id: 12,
+              name: "test product12",
+              vendor: "Vendor A",
+              price: 172.5,
+            },
+            {
+              id: 13,
+              name: "test product13",
+              vendor: "Vendor J",
+              price: 100.0,
+            },
+            { id: 14, name: "test product14", vendor: "Vendor J", price: 99.5 },
+            { id: 15, name: "test product15", vendor: "Vendor C", price: 87.5 },
+            { id: 16, name: "test product16", vendor: "Vendor G", price: 57.0 },
+            { id: 17, name: "test product17", vendor: "Vendor I", price: 10.0 },
+            {
+              id: 18,
+              name: "test product18",
+              vendor: "Vendor H",
+              price: 421.5,
+            },
+            {
+              id: 19,
+              name: "test product19",
+              vendor: "Vendor A",
+              price: 112.5,
+            },
+            {
+              id: 20,
+              name: "test product20",
+              vendor: "Vendor F",
+              price: 102.0,
+            },
+            { id: 21, name: "test product21", vendor: "Vendor A", price: 52.0 },
+            { id: 22, name: "test product22", vendor: "Vendor I", price: 32.0 },
+            {
+              id: 23,
+              name: "test product23",
+              vendor: "Vendor A",
+              price: 200.0,
+            },
+            {
+              id: 24,
+              name: "test product24",
+              vendor: "Vendor D",
+              price: 584.5,
+            },
+            { id: 25, name: "test product25", vendor: "Vendor J", price: 67.0 },
+            {
+              id: 26,
+              name: "test product26",
+              vendor: "Vendor C",
+              price: 132.5,
+            },
+            { id: 27, name: "test product27", vendor: "Vendor E", price: 42.5 },
+          ];
+
+          // Populate the product table
+          populateProductTable(products);
+
+          // Add event listeners for the "Add to Cart" button in the product table
+          var addToCartButtons = document.querySelectorAll(".add-to-cart-btn");
+          addToCartButtons.forEach(function (button) {
+            button.addEventListener("click", addToCart);
+          });
+        });
+
+       
+    </script>
+  </body>
+</html>
